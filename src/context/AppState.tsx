@@ -8,6 +8,7 @@ export type OnboardingData = {
   goalWeightKg?: number;
   dietaryRestrictions: string[]; // e.g., ["vegetarian", "gluten-free"]
   equipment: string[]; // ["oven", "air-fryer", "no-equipment", "dumbbells", "bands"]
+  mealsPerDay: number; // 1-6
   timePerMealMin: number; // 5-30
   timePerWorkoutMin: number; // 5-45
 };
@@ -44,6 +45,7 @@ export type AppState = {
 const defaultOnboarding: OnboardingData = {
   dietaryRestrictions: [],
   equipment: [],
+  mealsPerDay: 3,
   timePerMealMin: 20,
   timePerWorkoutMin: 20,
 };
@@ -105,7 +107,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const generatePlan = () => {
-    const picksMeals = filterRecipes(6).slice(0, 3);
+    const mealCount = Math.max(1, Math.min(6, onboarding.mealsPerDay ?? 3));
+    const picksMeals = filterRecipes(mealCount * 2).slice(0, mealCount);
     const picksWorkout = filterWorkouts(6).slice(0, 1);
     const newPlan: PlanItem[] = [
       ...picksMeals.map((m, i) => ({ id: `meal-${i}`, type: "meal" as const, refId: m.id, completed: false })),
@@ -127,9 +130,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const completePlanItem = (planItemId: string) => {
-    setPlan((prev) => prev.map((p) => (p.id === planItemId ? { ...p, completed: true } : p)));
+    setPlan((prev) => prev.map((p) => (p.id === planItemId ? { ...p, completed: !p.completed } : p)));
     setMetrics((m) => ({ ...m, taps: { ...m.taps, complete: m.taps.complete + 1 } }));
-    toast({ title: "Completed", description: "Marked as done." });
+    toast({ title: "Completed", description: "Updated status." });
   };
 
   const addWeightEntry = (weightKg: number) => {

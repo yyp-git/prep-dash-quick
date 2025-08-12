@@ -147,6 +147,15 @@ const Onboarding: React.FC = () => {
         <section className="space-y-4">
           <div>
             <div className="flex justify-between">
+              <Label>Meals per day</Label>
+              <span className="text-sm">{onboarding.mealsPerDay ?? 3}</span>
+            </div>
+            <Slider value={[onboarding.mealsPerDay ?? 3]} min={1} max={6} step={1}
+              onValueChange={([v]) => setOnboarding({ mealsPerDay: v })} />
+            <p className="text-xs text-muted-foreground mt-1">We'll recommend this many meals in your daily plan.</p>
+          </div>
+          <div>
+            <div className="flex justify-between">
               <Label>Prep time per meal</Label>
               <span className="text-sm">{onboarding.timePerMealMin} min</span>
             </div>
@@ -170,12 +179,13 @@ const Onboarding: React.FC = () => {
           <p className="text-sm">We’ve set easy, safe defaults (≤20 min, ≤8 ingredients). You can tweak these anytime in Profile—you're in control.</p>
           <div className="rounded-md border p-3 text-sm">
             <p><strong>Summary</strong></p>
-            <ul className="list-disc pl-4">
-              <li>Diet: {onboarding.dietaryRestrictions.join(", ") || "none"}</li>
-              <li>Equip: {onboarding.equipment.join(", ") || "none"}</li>
-              <li>Meal time: {onboarding.timePerMealMin} min</li>
-              <li>Workout time: {onboarding.timePerWorkoutMin} min</li>
-            </ul>
+              <ul className="list-disc pl-4">
+                <li>Diet: {onboarding.dietaryRestrictions.join(", ") || "none"}</li>
+                <li>Equip: {onboarding.equipment.join(", ") || "none"}</li>
+                <li>Meals/day: {onboarding.mealsPerDay ?? 3}</li>
+                <li>Meal time: {onboarding.timePerMealMin} min</li>
+                <li>Workout time: {onboarding.timePerWorkoutMin} min</li>
+              </ul>
           </div>
         </section>
       )}

@@ -101,7 +101,11 @@ const Home: React.FC = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex gap-2">
-                <Button size="sm" onClick={onStart}>Start</Button>
+                <Button size="sm" onClick={() => {
+                  if (isGuest) { setUpsell(true); return; }
+                  recordTap("start");
+                  navigate(isMeal ? `/recipes/${(ref as Recipe).id}` : `/exercises/${(ref as Exercise).id}`);
+                }}>Start</Button>
                 <Dialog open={openFor === p.id} onOpenChange={(o) => setOpenFor(o ? p.id : null)}>
                   <DialogTrigger asChild>
                     <Button size="sm" variant="secondary" onClick={() => setOpenFor(p.id)}>Swap</Button>
@@ -127,7 +131,7 @@ const Home: React.FC = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-                <Button size="sm" variant="secondary" onClick={() => completePlanItem(p.id)} disabled={!!p.completed}>{p.completed ? "Completed" : "Complete"}</Button>
+                <Button size="sm" variant="secondary" onClick={() => completePlanItem(p.id)}>{p.completed ? "Completed" : "Complete"}</Button>
               </CardContent>
             </Card>
           );
