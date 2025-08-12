@@ -114,12 +114,18 @@ const Home: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-base">Overview</CardTitle>
             </CardHeader>
-            <CardContent className="text-sm flex items-center justify-between gap-3">
-              <div className="space-y-1">
-                <p>{stats.meals} meals + {stats.workouts} workout today</p>
-                <p className="text-muted-foreground">≈ {stats.totalKcal} kcal − {stats.totalBurn} = {stats.netKcal} net • {stats.totalProtein}g protein • ~{stats.totalPrep} min prep • {stats.totalWorkoutMin} min workout</p>
-                <p className="text-muted-foreground">Target ≈ {recs.targetKcal} kcal • {recs.targetProtein}g protein</p>
-                <p className="text-muted-foreground">{recs.remainingKcal >= 0 ? `Remaining ${recs.remainingKcal} kcal` : `Over by ${Math.abs(recs.remainingKcal)} kcal`} • {recs.remainingProtein >= 0 ? `Remaining ${recs.remainingProtein}g protein` : `Over by ${Math.abs(recs.remainingProtein)}g protein`}</p>
+            <CardContent className="text-sm flex items-start justify-between gap-3">
+              <div className="space-y-2">
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Completed today</p>
+                  <p>{stats.meals} meals + {stats.workouts} workout</p>
+                  <p className="text-muted-foreground">Food {stats.totalKcal} kcal − Burn {stats.totalBurn} kcal = Net {stats.netKcal} kcal • {stats.totalProtein}g protein • ~{stats.totalPrep} min prep • {stats.totalWorkoutMin} min workout</p>
+                </div>
+                <div>
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Goal targets</p>
+                  <p>Target ≈ {recs.targetKcal} kcal • {recs.targetProtein}g protein</p>
+                  <p className="text-muted-foreground">{recs.remainingKcal >= 0 ? `Remaining ${recs.remainingKcal} kcal` : `Over by ${Math.abs(recs.remainingKcal)} kcal`} • {recs.remainingProtein >= 0 ? `Remaining ${recs.remainingProtein}g` : `Over by ${Math.abs(recs.remainingProtein)}g`}</p>
+                </div>
               </div>
               <Button size="sm" variant="secondary" onClick={() => navigate("/onboarding")}>
                 Adjust inputs
