@@ -135,7 +135,7 @@ const Home: React.FC = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-                <Button size="sm" variant="secondary" onClick={() => completePlanItem(p.id)}>{p.completed ? "Completed" : "Complete"}</Button>
+                <Button size="sm" variant={p.completed ? "success" : "secondary"} onClick={() => completePlanItem(p.id)}>{p.completed ? "Completed" : "Complete"}</Button>
               </CardContent>
             </Card>
           );
