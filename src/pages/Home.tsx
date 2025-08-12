@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { MobileLayout } from "@/components/layout/MobileLayout";
 import { Seo } from "@/components/common/Seo";
 import { useApp } from "@/context/AppState";
@@ -16,7 +16,16 @@ const Home: React.FC = () => {
   const [openFor, setOpenFor] = useState<string | null>(null);
   const [upsell, setUpsell] = useState(false);
   const [query, setQuery] = useState("");
+  const [exerciseFor, setExerciseFor] = useState<string | null>(null);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const [timerRunning, setTimerRunning] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!exerciseFor || !timerRunning) return;
+    const id = setInterval(() => setTimerSeconds((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [exerciseFor, timerRunning]);
 
   const activeItem = useMemo(() => plan.find((p) => p.id === openFor), [openFor, plan]);
   const pool = useMemo(() => {
@@ -104,7 +113,10 @@ const Home: React.FC = () => {
                     recordTap("start");
                     navigate(`/recipes/${(ref as Recipe).id}`);
                   } else {
-                    onStart();
+                    recordTap("start");
+                    setExerciseFor(p.id);
+                    setTimerSeconds(0);
+                    setTimerRunning(true);
                   }
                 }}>Start</Button>
                 <Dialog open={openFor === p.id} onOpenChange={(o) => setOpenFor(o ? p.id : null)}>
@@ -132,6 +144,39 @@ const Home: React.FC = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
+                {!isMeal && (
+                  <Dialog open={exerciseFor === p.id} onOpenChange={(o) => {
+                    if (o) { setExerciseFor(p.id); } else { setExerciseFor(null); setTimerRunning(false); }
+                  }}>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>{(ref as Exercise).name}</DialogTitle>
+                      </DialogHeader>
+                      <div className="text-sm space-y-2">
+                        <p className="text-muted-foreground">{(ref as Exercise).durationMin} min • {(ref as Exercise).intensity} • ≈ {(ref as Exercise).caloriesBurn} kcal</p>
+                        <div>
+                          <p className="font-medium">Steps</p>
+                          <ol className="list-decimal pl-5">
+                            {(ref as Exercise).steps.map((s, idx) => (<li key={idx}>{s}</li>))}
+                          </ol>
+                        </div>
+                        <div>
+                          <p className="font-medium">Cues</p>
+                          <ul className="list-disc pl-5 text-muted-foreground">
+                            {(ref as Exercise).cues.map((c, idx) => (<li key={idx}>{c}</li>))}
+                          </ul>
+                        </div>
+                        <div className="border rounded p-2 flex items-center justify-between">
+                          <span className="font-mono tabular-nums">{String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:{String(timerSeconds % 60).padStart(2, '0')}</span>
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => setTimerRunning((r) => !r)}>{timerRunning ? "Pause" : "Resume"}</Button>
+                            <Button size="sm" variant="secondary" onClick={() => setTimerSeconds(0)}>Reset</Button>
+                          </div>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
                 <Button size="sm" variant={p.completed ? "success" : "secondary"} onClick={() => completePlanItem(p.id)}>{p.completed ? "Completed" : "Complete"}</Button>
               </CardContent>
             </Card>
