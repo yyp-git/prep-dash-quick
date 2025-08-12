@@ -12,6 +12,9 @@ import { Recipe, Exercise } from "@/data/mock";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { UpsellDialog } from "@/components/common/UpsellDialog";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 const Home: React.FC = () => {
   const { plan, isGuest, swapItem, recordTap, completePlanItem, onboarding, recipes, exercises, addCustomRecipe, addCustomExercise } = useApp();
@@ -115,16 +118,51 @@ const Home: React.FC = () => {
               <CardTitle className="text-base">Overview</CardTitle>
             </CardHeader>
             <CardContent className="text-sm flex items-start justify-between gap-3">
-              <div className="space-y-2">
+              <div className="space-y-3 w-full">
                 <div>
                   <p className="text-xs uppercase tracking-wide text-muted-foreground">Completed today</p>
                   <p>{stats.meals} meals + {stats.workouts} workout</p>
                   <p className="text-muted-foreground">Food {stats.totalKcal} kcal − Burn {stats.totalBurn} kcal = Net {stats.netKcal} kcal • {stats.totalProtein}g protein • ~{stats.totalPrep} min prep • {stats.totalWorkoutMin} min workout</p>
                 </div>
-                <div>
-                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Goal targets</p>
-                  <p>Target ≈ {recs.targetKcal} kcal • {recs.targetProtein}g protein</p>
-                  <p className="text-muted-foreground">{recs.remainingKcal >= 0 ? `Remaining ${recs.remainingKcal} kcal` : `Over by ${Math.abs(recs.remainingKcal)} kcal`} • {recs.remainingProtein >= 0 ? `Remaining ${recs.remainingProtein}g` : `Over by ${Math.abs(recs.remainingProtein)}g`}</p>
+                <Separator />
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-wide text-muted-foreground">Targets to goal weight</p>
+
+                  {/* Calories row */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Calories</span>
+                      <span className="text-sm text-muted-foreground">Target {recs.targetKcal} kcal</span>
+                    </div>
+                    <Progress
+                      aria-label="Calories progress to target"
+                      value={Math.min(100, Math.max(0, Math.round((stats.netKcal / recs.targetKcal) * 100)))}
+                    />
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Net {stats.netKcal} kcal</span>
+                      <Badge variant={recs.remainingKcal >= 0 ? "secondary" : "destructive"}>
+                        {recs.remainingKcal >= 0 ? `Remaining ${recs.remainingKcal} kcal` : `Over by ${Math.abs(recs.remainingKcal)} kcal`}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Protein row */}
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Protein</span>
+                      <span className="text-sm text-muted-foreground">Target {recs.targetProtein} g</span>
+                    </div>
+                    <Progress
+                      aria-label="Protein progress to target"
+                      value={Math.min(100, Math.max(0, Math.round((stats.totalProtein / recs.targetProtein) * 100)))}
+                    />
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Total {stats.totalProtein} g</span>
+                      <Badge variant={recs.remainingProtein >= 0 ? "secondary" : "destructive"}>
+                        {recs.remainingProtein >= 0 ? `Remaining ${recs.remainingProtein} g` : `Over by ${Math.abs(recs.remainingProtein)} g`}
+                      </Badge>
+                    </div>
+                  </div>
                 </div>
               </div>
               <Button size="sm" variant="secondary" onClick={() => navigate("/onboarding")}>
