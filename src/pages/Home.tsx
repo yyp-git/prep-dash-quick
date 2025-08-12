@@ -27,11 +27,11 @@ const Home: React.FC = () => {
 
   const stats = useMemo(() => {
     const mealItems = plan
-      .filter((p) => p.type === "meal")
+      .filter((p) => p.type === "meal" && p.completed)
       .map((p) => recipes.find((r) => r.id === p.refId))
       .filter(Boolean) as Recipe[];
     const workoutItems = plan
-      .filter((p) => p.type === "workout")
+      .filter((p) => p.type === "workout" && p.completed)
       .map((p) => exercises.find((e) => e.id === p.refId))
       .filter(Boolean) as Exercise[];
 
