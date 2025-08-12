@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { UpsellDialog } from "@/components/common/UpsellDialog";
 
 const Home: React.FC = () => {
-  const { plan, isGuest, swapItem, recordTap, completePlanItem } = useApp();
+  const { plan, isGuest, swapItem, recordTap, completePlanItem, onboarding } = useApp();
   const [openFor, setOpenFor] = useState<string | null>(null);
   const [upsell, setUpsell] = useState(false);
   const [query, setQuery] = useState("");
@@ -54,6 +54,26 @@ const Home: React.FC = () => {
     return { meals: mealItems.length, workouts: workoutItems.length, totalKcal, totalProtein, totalPrep, totalWorkoutMin, totalBurn, netKcal };
   }, [plan]);
 
+  const recs = useMemo(() => {
+    const current = onboarding.weightKg;
+    const goal = onboarding.goalWeightKg;
+    const baseWeight = goal ?? current ?? 70;
+
+    // Simple heuristic: ~30 kcal/kg goal weight, adjust for direction
+    let targetKcal = Math.round(baseWeight * 30);
+    if (goal && current) {
+      if (goal < current) targetKcal = Math.max(1200, targetKcal - 500); // cut for weight loss
+      else if (goal > current) targetKcal = targetKcal + 300; // slight surplus for gain
+    }
+
+    const targetProtein = Math.round(baseWeight * 1.8); // g/day
+
+    const remainingKcal = targetKcal - stats.netKcal; // compare against completed so far (net)
+    const remainingProtein = targetProtein - stats.totalProtein; // completed protein so far
+
+    return { targetKcal, targetProtein, remainingKcal, remainingProtein };
+  }, [onboarding.weightKg, onboarding.goalWeightKg, stats.totalProtein, stats.netKcal]);
+
   const onStart = () => {
     recordTap("start");
     toast({ title: "Let's go!", description: "Timer started (mock)." });
@@ -88,6 +108,8 @@ const Home: React.FC = () => {
               <div className="space-y-1">
                 <p>{stats.meals} meals + {stats.workouts} workout today</p>
                 <p className="text-muted-foreground">≈ {stats.totalKcal} kcal − {stats.totalBurn} = {stats.netKcal} net • {stats.totalProtein}g protein • ~{stats.totalPrep} min prep • {stats.totalWorkoutMin} min workout</p>
+                <p className="text-muted-foreground">Target ≈ {recs.targetKcal} kcal • {recs.targetProtein}g protein</p>
+                <p className="text-muted-foreground">{recs.remainingKcal >= 0 ? `Remaining ${recs.remainingKcal} kcal` : `Over by ${Math.abs(recs.remainingKcal)} kcal`} • {recs.remainingProtein >= 0 ? `Remaining ${recs.remainingProtein}g protein` : `Over by ${Math.abs(recs.remainingProtein)}g protein`}</p>
               </div>
               <Button size="sm" variant="secondary" onClick={() => navigate("/onboarding")}>
                 Adjust inputs
