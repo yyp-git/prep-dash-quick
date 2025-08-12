@@ -96,97 +96,201 @@ const Home: React.FC = () => {
           </Card>
         )}
 
-        {plan.map((p) => {
-          const isMeal = p.type === "meal";
-          const ref = isMeal ? recipes.find((r) => r.id === p.refId)! : exercises.find((e) => e.id === p.refId)!;
-          return (
-            <Card key={p.id}>
-              <CardHeader>
-                <CardTitle className="text-base flex justify-between">
-                  <span>{isMeal ? (ref as Recipe).name : (ref as Exercise).name}</span>
-                  <span className="text-sm text-muted-foreground">{isMeal ? `${(ref as Recipe).kcal} kcal / ${(ref as Recipe).protein}g P` : `${(ref as Exercise).durationMin} min`}</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex gap-2">
-                <Button size="sm" onClick={() => {
-                  if (isMeal) {
-                    recordTap("start");
-                    navigate(`/recipes/${(ref as Recipe).id}`);
-                  } else {
-                    recordTap("start");
-                    setExerciseFor(p.id);
-                    setTimerSeconds(0);
-                    setTimerRunning(true);
-                  }
-                }}>Start</Button>
-                <Dialog open={openFor === p.id} onOpenChange={(o) => setOpenFor(o ? p.id : null)}>
-                  <DialogTrigger asChild>
-                    <Button size="sm" variant="secondary" onClick={() => setOpenFor(p.id)}>Swap</Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-md">
-                    <DialogHeader>
-                      <DialogTitle>Swap {isMeal ? "meal" : "workout"}</DialogTitle>
-                    </DialogHeader>
-                    <Input placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
-                    <div className="max-h-64 overflow-auto mt-2 space-y-2">
-                      {pool.map((item) => (
-                        <button key={item.id} className="w-full border rounded p-2 text-left hover:bg-muted"
-                          onClick={() => {
-                            swapItem(p.id, { type: p.type, refId: item.id });
-                            setOpenFor(null);
-                          }}>
-                          <div className="flex justify-between text-sm">
-                            <span>{'kcal' in item ? item.name : item.name}</span>
-                            <span className="text-muted-foreground">{'kcal' in item ? `${(item as Recipe).kcal} kcal` : `${(item as Exercise).durationMin} min`}</span>
+        {/* Meals section */}
+        {plan.some((p) => p.type === "meal") && (
+          <section aria-labelledby="meals-heading" className="space-y-2">
+            <h2 id="meals-heading" className="text-sm font-medium text-muted-foreground">Meals</h2>
+            {plan.filter((p) => p.type === "meal").map((p) => {
+              const isMeal = p.type === "meal";
+              const ref = isMeal ? recipes.find((r) => r.id === p.refId)! : exercises.find((e) => e.id === p.refId)!;
+              return (
+                <Card key={p.id}>
+                  <CardHeader>
+                    <CardTitle className="text-base flex justify-between">
+                      <span>{isMeal ? (ref as Recipe).name : (ref as Exercise).name}</span>
+                      <span className="text-sm text-muted-foreground">{isMeal ? `${(ref as Recipe).kcal} kcal / ${(ref as Recipe).protein}g P` : `${(ref as Exercise).durationMin} min`}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex gap-2">
+                    <Button size="sm" onClick={() => {
+                      if (isMeal) {
+                        recordTap("start");
+                        navigate(`/recipes/${(ref as Recipe).id}`);
+                      } else {
+                        recordTap("start");
+                        setExerciseFor(p.id);
+                        setTimerSeconds(0);
+                        setTimerRunning(true);
+                      }
+                    }}>Start</Button>
+                    <Dialog open={openFor === p.id} onOpenChange={(o) => setOpenFor(o ? p.id : null)}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="secondary" onClick={() => setOpenFor(p.id)}>Swap</Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Swap {isMeal ? "meal" : "workout"}</DialogTitle>
+                        </DialogHeader>
+                        <Input placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
+                        <div className="max-h-64 overflow-auto mt-2 space-y-2">
+                          {pool.map((item) => (
+                            <button key={item.id} className="w-full border rounded p-2 text-left hover:bg-muted"
+                              onClick={() => {
+                                swapItem(p.id, { type: p.type, refId: item.id });
+                                setOpenFor(null);
+                              }}>
+                              <div className="flex justify-between text-sm">
+                                <span>{'kcal' in item ? item.name : item.name}</span>
+                                <span className="text-muted-foreground">{'kcal' in item ? `${(item as Recipe).kcal} kcal` : `${(item as Exercise).durationMin} min`}</span>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                    {!isMeal && (
+                      <Dialog open={exerciseFor === p.id} onOpenChange={(o) => {
+                        if (o) { setExerciseFor(p.id); } else { setExerciseFor(null); setTimerRunning(false); }
+                      }}>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>{(ref as Exercise).name}</DialogTitle>
+                          </DialogHeader>
+                          <div className="text-sm space-y-2">
+                            <p className="text-muted-foreground">{(ref as Exercise).durationMin} min • {(ref as Exercise).intensity} • ≈ {(ref as Exercise).caloriesBurn} kcal</p>
+                            <div>
+                              <p className="font-medium">Steps</p>
+                              <ol className="list-decimal pl-5">
+                                {(ref as Exercise).steps.map((s, idx) => (<li key={idx}>{s}</li>))}
+                              </ol>
+                            </div>
+                            <div>
+                              <p className="font-medium">Cues</p>
+                              <ul className="list-disc pl-5 text-muted-foreground">
+                                {(ref as Exercise).cues.map((c, idx) => (<li key={idx}>{c}</li>))}
+                              </ul>
+                            </div>
+                            <div className="border rounded p-2 flex items-center justify-between">
+                              <span className="font-mono tabular-nums">{String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:{String(timerSeconds % 60).padStart(2, '0')}</span>
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => setTimerRunning((r) => !r)}>{timerRunning ? "Pause" : "Resume"}</Button>
+                                <Button size="sm" variant="secondary" onClick={() => setTimerSeconds(0)}>Reset</Button>
+                              </div>
+                            </div>
+                            <div className="flex justify-end mt-2">
+                              <Button size="sm" variant={p.completed ? "success" : "secondary"} onClick={() => completePlanItem(p.id)}>
+                                {p.completed ? "Completed" : "Complete"}
+                              </Button>
+                            </div>
                           </div>
-                        </button>
-                      ))}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-                {!isMeal && (
-                  <Dialog open={exerciseFor === p.id} onOpenChange={(o) => {
-                    if (o) { setExerciseFor(p.id); } else { setExerciseFor(null); setTimerRunning(false); }
-                  }}>
-                    <DialogContent className="max-w-md">
-                      <DialogHeader>
-                        <DialogTitle>{(ref as Exercise).name}</DialogTitle>
-                      </DialogHeader>
-                      <div className="text-sm space-y-2">
-                        <p className="text-muted-foreground">{(ref as Exercise).durationMin} min • {(ref as Exercise).intensity} • ≈ {(ref as Exercise).caloriesBurn} kcal</p>
-                        <div>
-                          <p className="font-medium">Steps</p>
-                          <ol className="list-decimal pl-5">
-                            {(ref as Exercise).steps.map((s, idx) => (<li key={idx}>{s}</li>))}
-                          </ol>
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                    <Button size="sm" variant={p.completed ? "success" : "secondary"} onClick={() => completePlanItem(p.id)}>{p.completed ? "Completed" : "Complete"}</Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </section>
+        )}
+
+        {/* Workouts section */}
+        {plan.some((p) => p.type === "workout") && (
+          <section aria-labelledby="workouts-heading" className="space-y-2">
+            <h2 id="workouts-heading" className="text-sm font-medium text-muted-foreground">Workouts</h2>
+            {plan.filter((p) => p.type === "workout").map((p) => {
+              const isMeal = p.type === "meal";
+              const ref = isMeal ? recipes.find((r) => r.id === p.refId)! : exercises.find((e) => e.id === p.refId)!;
+              return (
+                <Card key={p.id}>
+                  <CardHeader>
+                    <CardTitle className="text-base flex justify-between">
+                      <span>{isMeal ? (ref as Recipe).name : (ref as Exercise).name}</span>
+                      <span className="text-sm text-muted-foreground">{isMeal ? `${(ref as Recipe).kcal} kcal / ${(ref as Recipe).protein}g P` : `${(ref as Exercise).durationMin} min`}</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex gap-2">
+                    <Button size="sm" onClick={() => {
+                      if (isMeal) {
+                        recordTap("start");
+                        navigate(`/recipes/${(ref as Recipe).id}`);
+                      } else {
+                        recordTap("start");
+                        setExerciseFor(p.id);
+                        setTimerSeconds(0);
+                        setTimerRunning(true);
+                      }
+                    }}>Start</Button>
+                    <Dialog open={openFor === p.id} onOpenChange={(o) => setOpenFor(o ? p.id : null)}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="secondary" onClick={() => setOpenFor(p.id)}>Swap</Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Swap {isMeal ? "meal" : "workout"}</DialogTitle>
+                        </DialogHeader>
+                        <Input placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
+                        <div className="max-h-64 overflow-auto mt-2 space-y-2">
+                          {pool.map((item) => (
+                            <button key={item.id} className="w-full border rounded p-2 text-left hover:bg-muted"
+                              onClick={() => {
+                                swapItem(p.id, { type: p.type, refId: item.id });
+                                setOpenFor(null);
+                              }}>
+                              <div className="flex justify-between text-sm">
+                                <span>{'kcal' in item ? item.name : item.name}</span>
+                                <span className="text-muted-foreground">{'kcal' in item ? `${(item as Recipe).kcal} kcal` : `${(item as Exercise).durationMin} min`}</span>
+                              </div>
+                            </button>
+                          ))}
                         </div>
-                        <div>
-                          <p className="font-medium">Cues</p>
-                          <ul className="list-disc pl-5 text-muted-foreground">
-                            {(ref as Exercise).cues.map((c, idx) => (<li key={idx}>{c}</li>))}
-                          </ul>
-                        </div>
-                        <div className="border rounded p-2 flex items-center justify-between">
-                          <span className="font-mono tabular-nums">{String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:{String(timerSeconds % 60).padStart(2, '0')}</span>
-                          <div className="flex gap-2">
-                            <Button size="sm" onClick={() => setTimerRunning((r) => !r)}>{timerRunning ? "Pause" : "Resume"}</Button>
-                            <Button size="sm" variant="secondary" onClick={() => setTimerSeconds(0)}>Reset</Button>
+                      </DialogContent>
+                    </Dialog>
+                    {!isMeal && (
+                      <Dialog open={exerciseFor === p.id} onOpenChange={(o) => {
+                        if (o) { setExerciseFor(p.id); } else { setExerciseFor(null); setTimerRunning(false); }
+                      }}>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>{(ref as Exercise).name}</DialogTitle>
+                          </DialogHeader>
+                          <div className="text-sm space-y-2">
+                            <p className="text-muted-foreground">{(ref as Exercise).durationMin} min • {(ref as Exercise).intensity} • ≈ {(ref as Exercise).caloriesBurn} kcal</p>
+                            <div>
+                              <p className="font-medium">Steps</p>
+                              <ol className="list-decimal pl-5">
+                                {(ref as Exercise).steps.map((s, idx) => (<li key={idx}>{s}</li>))}
+                              </ol>
+                            </div>
+                            <div>
+                              <p className="font-medium">Cues</p>
+                              <ul className="list-disc pl-5 text-muted-foreground">
+                                {(ref as Exercise).cues.map((c, idx) => (<li key={idx}>{c}</li>))}
+                              </ul>
+                            </div>
+                            <div className="border rounded p-2 flex items-center justify-between">
+                              <span className="font-mono tabular-nums">{String(Math.floor(timerSeconds / 60)).padStart(2, '0')}:{String(timerSeconds % 60).padStart(2, '0')}</span>
+                              <div className="flex gap-2">
+                                <Button size="sm" onClick={() => setTimerRunning((r) => !r)}>{timerRunning ? "Pause" : "Resume"}</Button>
+                                <Button size="sm" variant="secondary" onClick={() => setTimerSeconds(0)}>Reset</Button>
+                              </div>
+                            </div>
+                            <div className="flex justify-end mt-2">
+                              <Button size="sm" variant={p.completed ? "success" : "secondary"} onClick={() => completePlanItem(p.id)}>
+                                {p.completed ? "Completed" : "Complete"}
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                        <div className="flex justify-end mt-2">
-                          <Button size="sm" variant={p.completed ? "success" : "secondary"} onClick={() => completePlanItem(p.id)}>
-                            {p.completed ? "Completed" : "Complete"}
-                          </Button>
-                        </div>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                )}
-                <Button size="sm" variant={p.completed ? "success" : "secondary"} onClick={() => completePlanItem(p.id)}>{p.completed ? "Completed" : "Complete"}</Button>
-              </CardContent>
-            </Card>
-          );
-        })}
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                    <Button size="sm" variant={p.completed ? "success" : "secondary"} onClick={() => completePlanItem(p.id)}>{p.completed ? "Completed" : "Complete"}</Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </section>
+        )}
       </div>
     </MobileLayout>
   );
