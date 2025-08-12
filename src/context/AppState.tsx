@@ -16,6 +16,7 @@ export type PlanItem = {
   id: string;
   type: "meal" | "workout";
   refId: string; // recipe or exercise id
+  completed?: boolean;
 };
 
 export type Metrics = {
@@ -32,8 +33,11 @@ export type AppState = {
   plan: PlanItem[];
   generatePlan: () => void;
   swapItem: (planItemId: string, replacement: { type: "meal" | "workout"; refId: string }) => void;
+  completePlanItem: (planItemId: string) => void;
   recordTap: (t: keyof Metrics["taps"]) => void;
   metrics: Metrics;
+  weightHistory: { date: string; weightKg: number }[];
+  addWeightEntry: (weightKg: number) => void;
   online: boolean;
 };
 
@@ -55,6 +59,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     planAccepted: false,
     streakCount: 0,
   });
+  const [weightHistory, setWeightHistory] = useState<{ date: string; weightKg: number }[]>([
+    // simple seed for visual
+  ]);
   const [online, setOnline] = useState<boolean>(navigator.onLine);
 
   useEffect(() => {
@@ -101,8 +108,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const picksMeals = filterRecipes(6).slice(0, 3);
     const picksWorkout = filterWorkouts(6).slice(0, 1);
     const newPlan: PlanItem[] = [
-      ...picksMeals.map((m, i) => ({ id: `meal-${i}`, type: "meal" as const, refId: m.id })),
-      ...picksWorkout.map((w, i) => ({ id: `workout-${i}`, type: "workout" as const, refId: w.id })),
+      ...picksMeals.map((m, i) => ({ id: `meal-${i}`, type: "meal" as const, refId: m.id, completed: false })),
+      ...picksWorkout.map((w, i) => ({ id: `workout-${i}`, type: "workout" as const, refId: w.id, completed: false })),
     ];
     setPlan(newPlan);
     setMetrics((m) => ({ ...m, planAccepted: true }));
@@ -119,6 +126,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setMetrics((m) => ({ ...m, taps: { ...m.taps, [t]: m.taps[t] + 1 } }));
   };
 
+  const completePlanItem = (planItemId: string) => {
+    setPlan((prev) => prev.map((p) => (p.id === planItemId ? { ...p, completed: true } : p)));
+    setMetrics((m) => ({ ...m, taps: { ...m.taps, complete: m.taps.complete + 1 } }));
+    toast({ title: "Completed", description: "Marked as done." });
+  };
+
+  const addWeightEntry = (weightKg: number) => {
+    const today = new Date().toISOString().slice(0, 10);
+    setWeightHistory((prev) => {
+      const others = prev.filter((e) => e.date !== today);
+      return [...others, { date: today, weightKg }].sort((a, b) => a.date.localeCompare(b.date));
+    });
+    toast({ title: "Weight logged", description: `${weightKg} kg recorded for today.` });
+  };
   const value = useMemo<AppState>(
     () => ({
       isGuest,
@@ -128,11 +149,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       plan,
       generatePlan,
       swapItem,
+      completePlanItem,
       recordTap,
       metrics,
+      weightHistory,
+      addWeightEntry,
       online,
     }),
-    [isGuest, onboarding, plan, metrics, online]
+    [isGuest, onboarding, plan, metrics, weightHistory, online]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

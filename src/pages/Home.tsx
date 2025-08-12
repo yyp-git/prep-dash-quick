@@ -12,7 +12,7 @@ import { toast } from "@/hooks/use-toast";
 import { UpsellDialog } from "@/components/common/UpsellDialog";
 
 const Home: React.FC = () => {
-  const { plan, isGuest, swapItem, recordTap } = useApp();
+  const { plan, isGuest, swapItem, recordTap, completePlanItem } = useApp();
   const [openFor, setOpenFor] = useState<string | null>(null);
   const [upsell, setUpsell] = useState(false);
   const [query, setQuery] = useState("");
@@ -127,7 +127,7 @@ const Home: React.FC = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
-                <Button size="sm" variant="secondary" onClick={onComplete}>Complete</Button>
+                <Button size="sm" variant="secondary" onClick={() => completePlanItem(p.id)} disabled={!!p.completed}>{p.completed ? "Completed" : "Complete"}</Button>
               </CardContent>
             </Card>
           );
