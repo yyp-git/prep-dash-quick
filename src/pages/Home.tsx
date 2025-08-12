@@ -46,6 +46,7 @@ const Home: React.FC = () => {
       <UpsellDialog open={upsell} onOpenChange={setUpsell} />
 
       <div className="space-y-3">
+        <p className="text-sm text-muted-foreground">Tap Start to begin, Swap to choose another, Complete when done.</p>
         {plan.length === 0 && (
           <div className="rounded-md border p-4 text-sm text-muted-foreground">
             No plan yet. Go to Onboarding to generate one.

@@ -10,8 +10,9 @@ import { useApp } from "@/context/AppState";
 import { useNavigate } from "react-router-dom";
 
 const DIET_TAGS = ["vegetarian", "vegan", "gluten-free", "dairy-free", "nut-free"];
-const EQUIP = ["oven", "air-fryer", "dumbbells", "bands", "no-equipment"];
-
+const KITCHENWARE = ["oven", "air-fryer"];
+const EXERCISE_EQUIP = ["dumbbells", "bands"];
+const NO_EQUIPMENT = "no-equipment";
 type Step = 1 | 2 | 3 | 4 | 5;
 
 const Onboarding: React.FC = () => {
@@ -77,23 +78,67 @@ const Onboarding: React.FC = () => {
       )}
 
       {step === 3 && (
-        <section className="space-y-2">
+        <section className="space-y-3">
           <Label>Equipment access</Label>
-          <div className="flex flex-wrap gap-2">
-            {EQUIP.map((t) => {
-              const active = onboarding.equipment.includes(t);
-              return (
-                <Badge key={t} variant={active ? "default" : "secondary"}
-                  onClick={() => {
-                    const cur = new Set(onboarding.equipment);
-                    cur.has(t) ? cur.delete(t) : cur.add(t);
-                    setOnboarding({ equipment: Array.from(cur) });
-                  }}
-                  className="cursor-pointer select-none">
-                  {t}
-                </Badge>
-              );
-            })}
+
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Kitchenware</p>
+            <div className="flex flex-wrap gap-2">
+              {KITCHENWARE.map((t) => {
+                const active = onboarding.equipment.includes(t);
+                return (
+                  <Badge key={t} variant={active ? "default" : "secondary"}
+                    onClick={() => {
+                      const cur = new Set(onboarding.equipment);
+                      cur.has(t) ? cur.delete(t) : cur.add(t);
+                      setOnboarding({ equipment: Array.from(cur) });
+                    }}
+                    className="cursor-pointer select-none">
+                    {t}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">Exercise equipment</p>
+            <div className="flex flex-wrap gap-2">
+              {EXERCISE_EQUIP.map((t) => {
+                const active = onboarding.equipment.includes(t);
+                return (
+                  <Badge key={t} variant={active ? "default" : "secondary"}
+                    onClick={() => {
+                      const cur = new Set(onboarding.equipment);
+                      cur.has(t) ? cur.delete(t) : cur.add(t);
+                      setOnboarding({ equipment: Array.from(cur) });
+                    }}
+                    className="cursor-pointer select-none">
+                    {t}
+                  </Badge>
+                );
+              })}
+            </div>
+          </div>
+
+          <div>
+            <p className="text-xs text-muted-foreground mb-1">No equipment</p>
+            <div className="flex flex-wrap gap-2">
+              {[NO_EQUIPMENT].map((t) => {
+                const active = onboarding.equipment.includes(t);
+                return (
+                  <Badge key={t} variant={active ? "default" : "secondary"}
+                    onClick={() => {
+                      const cur = new Set(onboarding.equipment);
+                      cur.has(t) ? cur.delete(t) : cur.add(t);
+                      setOnboarding({ equipment: Array.from(cur) });
+                    }}
+                    className="cursor-pointer select-none">
+                    {t}
+                  </Badge>
+                );
+              })}
+            </div>
           </div>
         </section>
       )}
@@ -102,11 +147,12 @@ const Onboarding: React.FC = () => {
         <section className="space-y-4">
           <div>
             <div className="flex justify-between">
-              <Label>Time per meal</Label>
+              <Label>Prep time per meal</Label>
               <span className="text-sm">{onboarding.timePerMealMin} min</span>
             </div>
             <Slider value={[onboarding.timePerMealMin]} min={5} max={30} step={1}
               onValueChange={([v]) => setOnboarding({ timePerMealMin: v })} />
+            <p className="text-xs text-muted-foreground mt-1">We use this to filter recipes you can prep within this time.</p>
           </div>
           <div>
             <div className="flex justify-between">
@@ -121,7 +167,7 @@ const Onboarding: React.FC = () => {
 
       {step === 5 && (
         <section className="space-y-3">
-          <p className="text-sm">Conservative defaults applied (≤20 min, ≤8 ingredients). Adjust anytime in Profile.</p>
+          <p className="text-sm">We’ve set easy, safe defaults (≤20 min, ≤8 ingredients). You can tweak these anytime in Profile—you're in control.</p>
           <div className="rounded-md border p-3 text-sm">
             <p><strong>Summary</strong></p>
             <ul className="list-disc pl-4">
