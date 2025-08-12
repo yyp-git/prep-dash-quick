@@ -41,6 +41,11 @@ export type AppState = {
   nutritionHistory: { date: string; kcal: number; protein: number; burn: number; net: number }[];
   addWeightEntry: (weightKg: number) => void;
   online: boolean;
+  // Library and custom content
+  recipes: Recipe[];
+  exercises: Exercise[];
+  addCustomRecipe: (r: Omit<Recipe, "id">, saveToLibrary: boolean) => string;
+  addCustomExercise: (e: Omit<Exercise, "id">, saveToLibrary: boolean) => string;
 };
 
 const defaultOnboarding: OnboardingData = {
@@ -68,6 +73,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [online, setOnline] = useState<boolean>(navigator.onLine);
   const [nutritionHistory, setNutritionHistory] = useState<{ date: string; kcal: number; protein: number; burn: number; net: number }[]>([]);
 
+  // Custom libraries (persistent and session-only)
+  const [userRecipes, setUserRecipes] = useState<Recipe[]>(() => {
+    try { return JSON.parse(localStorage.getItem("userRecipes") || "[]"); } catch { return []; }
+  });
+  const [userExercises, setUserExercises] = useState<Exercise[]>(() => {
+    try { return JSON.parse(localStorage.getItem("userExercises") || "[]"); } catch { return []; }
+  });
+  const [tempRecipes, setTempRecipes] = useState<Recipe[]>([]);
+  const [tempExercises, setTempExercises] = useState<Exercise[]>([]);
+
+  useEffect(() => { localStorage.setItem("userRecipes", JSON.stringify(userRecipes)); }, [userRecipes]);
+  useEffect(() => { localStorage.setItem("userExercises", JSON.stringify(userExercises)); }, [userExercises]);
+
+  const recipes = useMemo(() => [...allRecipes, ...tempRecipes, ...userRecipes], [tempRecipes, userRecipes]);
+  const exercises = useMemo(() => [...allExercises, ...tempExercises, ...userExercises], [tempExercises, userExercises]);
+
+
   useEffect(() => {
     const onOnline = () => setOnline(true);
     const onOffline = () => setOnline(false);
@@ -83,7 +105,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setOnboardingState((prev) => ({ ...prev, ...u }));
 
   const filterRecipes = (limit = 20) => {
-    return allRecipes
+    return recipes
       .filter((r) => r.prepTimeMin <= onboarding.timePerMealMin)
       .filter((r) =>
         onboarding.dietaryRestrictions.length === 0 ||
@@ -99,7 +121,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const filterWorkouts = (limit = 20) => {
-    return allExercises
+    return exercises
       .filter((w) => w.durationMin <= onboarding.timePerWorkoutMin)
       .filter((w) =>
         onboarding.equipment.includes("no-equipment") ? w.equipment.length === 0 : true
@@ -138,11 +160,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       const today = new Date().toISOString().slice(0, 10);
       const completedMeals = newPlan
         .filter((p) => p.type === "meal" && p.completed)
-        .map((p) => allRecipes.find((r) => r.id === p.refId))
+        .map((p) => recipes.find((r) => r.id === p.refId))
         .filter(Boolean) as Recipe[];
       const completedWorkouts = newPlan
         .filter((p) => p.type === "workout" && p.completed)
-        .map((p) => allExercises.find((e) => e.id === p.refId))
+        .map((p) => exercises.find((e) => e.id === p.refId))
         .filter(Boolean) as Exercise[];
       const kcal = completedMeals.reduce((s, r) => s + r.kcal, 0);
       const protein = completedMeals.reduce((s, r) => s + r.protein, 0);
@@ -158,6 +180,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     toast({ title: "Completed", description: "Updated status." });
   };
 
+  const genId = (prefix: string) => `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
+
+  const addCustomRecipe = (r: Omit<Recipe, "id">, saveToLibrary: boolean) => {
+    const id = genId("custom-recipe");
+    const full: Recipe = { id, ...r } as Recipe;
+    if (saveToLibrary) setUserRecipes((prev) => [...prev, full]);
+    else setTempRecipes((prev) => [...prev, full]);
+    return id;
+  };
+
+  const addCustomExercise = (e: Omit<Exercise, "id">, saveToLibrary: boolean) => {
+    const id = genId("custom-exercise");
+    const full: Exercise = { id, ...e } as Exercise;
+    if (saveToLibrary) setUserExercises((prev) => [...prev, full]);
+    else setTempExercises((prev) => [...prev, full]);
+    return id;
+  };
   const addWeightEntry = (weightKg: number) => {
     const today = new Date().toISOString().slice(0, 10);
     setWeightHistory((prev) => {
@@ -182,8 +221,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       nutritionHistory,
       addWeightEntry,
       online,
+      recipes,
+      exercises,
+      addCustomRecipe,
+      addCustomExercise,
     }),
-    [isGuest, onboarding, plan, metrics, weightHistory, nutritionHistory, online]
+    [isGuest, onboarding, plan, metrics, weightHistory, nutritionHistory, online, recipes, exercises]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

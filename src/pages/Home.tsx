@@ -6,13 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { recipes, exercises, Recipe, Exercise } from "@/data/mock";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Recipe, Exercise } from "@/data/mock";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { UpsellDialog } from "@/components/common/UpsellDialog";
 
 const Home: React.FC = () => {
-  const { plan, isGuest, swapItem, recordTap, completePlanItem, onboarding } = useApp();
+  const { plan, isGuest, swapItem, recordTap, completePlanItem, onboarding, recipes, exercises, addCustomRecipe, addCustomExercise } = useApp();
   const [openFor, setOpenFor] = useState<string | null>(null);
   const [upsell, setUpsell] = useState(false);
   const [query, setQuery] = useState("");
@@ -20,6 +22,14 @@ const Home: React.FC = () => {
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [timerRunning, setTimerRunning] = useState(false);
   const navigate = useNavigate();
+
+  // Custom item form state
+  const [customName, setCustomName] = useState("");
+  const [customKcal, setCustomKcal] = useState("");
+  const [customProtein, setCustomProtein] = useState("");
+  const [customDuration, setCustomDuration] = useState("");
+  const [customBurn, setCustomBurn] = useState("");
+  const [customSave, setCustomSave] = useState(true);
 
   useEffect(() => {
     if (!exerciseFor || !timerRunning) return;
@@ -168,6 +178,66 @@ const Home: React.FC = () => {
                             </button>
                           ))}
                         </div>
+                        <div className="border-t mt-3 pt-3 space-y-2">
+                          <p className="text-xs text-muted-foreground">Create custom {isMeal ? "meal" : "workout"}</p>
+                          <Input placeholder="Name" value={customName} onChange={(e) => setCustomName(e.target.value)} />
+                          {isMeal ? (
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input type="number" inputMode="numeric" placeholder="Calories (kcal)" value={customKcal} onChange={(e) => setCustomKcal(e.target.value)} />
+                              <Input type="number" inputMode="numeric" placeholder="Protein (g)" value={customProtein} onChange={(e) => setCustomProtein(e.target.value)} />
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input type="number" inputMode="numeric" placeholder="Duration (min)" value={customDuration} onChange={(e) => setCustomDuration(e.target.value)} />
+                              <Input type="number" inputMode="numeric" placeholder="Calories burn" value={customBurn} onChange={(e) => setCustomBurn(e.target.value)} />
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Checkbox id={`save-${p.id}`} checked={customSave} onCheckedChange={(v) => setCustomSave(Boolean(v))} />
+                            <Label htmlFor={`save-${p.id}`}>Save to library</Label>
+                          </div>
+                          <div className="flex justify-end">
+                            <Button size="sm" onClick={() => {
+                              if (!customName.trim()) return;
+                              let newId = "";
+                              if (isMeal) {
+                                newId = addCustomRecipe({
+                                  name: customName.trim(),
+                                  kcal: Number(customKcal) || 0,
+                                  protein: Number(customProtein) || 0,
+                                  prepTimeMin: 10,
+                                  equipmentRequired: [],
+                                  dietaryTags: [],
+                                  costPerServing: 0,
+                                  category: "custom",
+                                  ingredients: [],
+                                  steps: ["Custom meal"],
+                                  vitamins: [],
+                                  allergyTags: [],
+                                }, customSave);
+                              } else {
+                                newId = addCustomExercise({
+                                  name: customName.trim(),
+                                  durationMin: Number(customDuration) || 10,
+                                  caloriesBurn: Number(customBurn) || 100,
+                                  intensity: "medium",
+                                  equipment: [],
+                                  bodyFocus: "full body",
+                                  steps: ["Custom workout"],
+                                  cues: [],
+                                  space: "normal",
+                                }, customSave);
+                              }
+                              swapItem(p.id, { type: p.type, refId: newId });
+                              setOpenFor(null);
+                              setCustomName("");
+                              setCustomKcal("");
+                              setCustomProtein("");
+                              setCustomDuration("");
+                              setCustomBurn("");
+                            }}>Use this</Button>
+                          </div>
+                        </div>
                       </DialogContent>
                     </Dialog>
                     {!isMeal && (
@@ -265,6 +335,66 @@ const Home: React.FC = () => {
                               </div>
                             </button>
                           ))}
+                        </div>
+                        <div className="border-t mt-3 pt-3 space-y-2">
+                          <p className="text-xs text-muted-foreground">Create custom {isMeal ? "meal" : "workout"}</p>
+                          <Input placeholder="Name" value={customName} onChange={(e) => setCustomName(e.target.value)} />
+                          {isMeal ? (
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input type="number" inputMode="numeric" placeholder="Calories (kcal)" value={customKcal} onChange={(e) => setCustomKcal(e.target.value)} />
+                              <Input type="number" inputMode="numeric" placeholder="Protein (g)" value={customProtein} onChange={(e) => setCustomProtein(e.target.value)} />
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-2">
+                              <Input type="number" inputMode="numeric" placeholder="Duration (min)" value={customDuration} onChange={(e) => setCustomDuration(e.target.value)} />
+                              <Input type="number" inputMode="numeric" placeholder="Calories burn" value={customBurn} onChange={(e) => setCustomBurn(e.target.value)} />
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <Checkbox id={`save-${p.id}`} checked={customSave} onCheckedChange={(v) => setCustomSave(Boolean(v))} />
+                            <Label htmlFor={`save-${p.id}`}>Save to library</Label>
+                          </div>
+                          <div className="flex justify-end">
+                            <Button size="sm" onClick={() => {
+                              if (!customName.trim()) return;
+                              let newId = "";
+                              if (isMeal) {
+                                newId = addCustomRecipe({
+                                  name: customName.trim(),
+                                  kcal: Number(customKcal) || 0,
+                                  protein: Number(customProtein) || 0,
+                                  prepTimeMin: 10,
+                                  equipmentRequired: [],
+                                  dietaryTags: [],
+                                  costPerServing: 0,
+                                  category: "custom",
+                                  ingredients: [],
+                                  steps: ["Custom meal"],
+                                  vitamins: [],
+                                  allergyTags: [],
+                                }, customSave);
+                              } else {
+                                newId = addCustomExercise({
+                                  name: customName.trim(),
+                                  durationMin: Number(customDuration) || 10,
+                                  caloriesBurn: Number(customBurn) || 100,
+                                  intensity: "medium",
+                                  equipment: [],
+                                  bodyFocus: "full body",
+                                  steps: ["Custom workout"],
+                                  cues: [],
+                                  space: "normal",
+                                }, customSave);
+                              }
+                              swapItem(p.id, { type: p.type, refId: newId });
+                              setOpenFor(null);
+                              setCustomName("");
+                              setCustomKcal("");
+                              setCustomProtein("");
+                              setCustomDuration("");
+                              setCustomBurn("");
+                            }}>Use this</Button>
+                          </div>
                         </div>
                       </DialogContent>
                     </Dialog>
