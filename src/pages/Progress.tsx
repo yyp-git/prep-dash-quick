@@ -104,6 +104,7 @@ const Progress: React.FC = () => {
             <CardTitle className="text-base">Weight trend (7d EWMA vs. population)</CardTitle>
           </CardHeader>
           <CardContent onClick={() => toast({ title: "Trend detail", description: "Detail view coming soon." })}>
+            <p className="text-xs text-muted-foreground mb-2">Smoothed weight over time; compare your trend to typical population pattern.</p>
             <div className="h-36">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
@@ -141,6 +142,8 @@ const Progress: React.FC = () => {
             <CardTitle className="text-base">Calories trend (completed vs. avg)</CardTitle>
           </CardHeader>
           <CardContent>
+            <p className="text-xs text-muted-foreground mb-2">Protein from completed meals vs. average reference.</p>
+            <p className="text-xs text-muted-foreground mb-2">Net calories from completed items vs. average reference.</p>
             <div className="h-36">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={calData}>
@@ -175,6 +178,7 @@ const Progress: React.FC = () => {
             <CardTitle className="text-base">Nutrition today (completed)</CardTitle>
           </CardHeader>
           <CardContent className="text-sm">
+            <p className="text-xs text-muted-foreground mb-2">Today’s completed meals and their totals.</p>
             <div className="flex items-center justify-between">
               <span>Meals completed</span>
               <span className="font-medium">{nutritionToday.completedCount}</span>
@@ -193,10 +197,14 @@ const Progress: React.FC = () => {
           <CardHeader>
             <CardTitle className="text-base">Streak</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm">Workouts completed this week: <strong>{Math.max(4, metrics.taps.complete % 7)}</strong></CardContent>
+          <CardContent className="text-sm">
+            <p className="text-xs text-muted-foreground mb-2">Keep your streak going to build consistent habits.</p>
+            Workouts completed this week: <strong>{Math.max(4, metrics.taps.complete % 7)}</strong>
+          </CardContent>
         </Card>
         <div className="rounded-md border p-3 text-sm">
           Non‑scale wins: <span className="text-muted-foreground">4 workouts completed this week</span>
+          <p className="text-xs text-muted-foreground mt-1">A reminder that progress isn’t only the scale.</p>
         </div>
       </div>
     </MobileLayout>
