@@ -18,6 +18,7 @@ export type Exercise = {
   id: string;
   name: string;
   durationMin: number;
+  caloriesBurn: number; // approximate kcal burned per session
   intensity: "low" | "medium" | "high";
   equipment: string[]; // [] for no-equipment
   bodyFocus: string; // e.g., "full body"
@@ -154,6 +155,7 @@ export const exercises: Exercise[] = [
     id: "hit-10",
     name: "10-min No-Equip HIIT",
     durationMin: 10,
+    caloriesBurn: 100,
     intensity: "high",
     equipment: [],
     bodyFocus: "full body",
@@ -165,6 +167,7 @@ export const exercises: Exercise[] = [
     id: "walk-20",
     name: "20-min Brisk Walk",
     durationMin: 20,
+    caloriesBurn: 80,
     intensity: "low",
     equipment: [],
     bodyFocus: "cardio",
@@ -176,6 +179,7 @@ export const exercises: Exercise[] = [
     id: "bands-15",
     name: "15-min Band Circuit",
     durationMin: 15,
+    caloriesBurn: 120,
     intensity: "medium",
     equipment: ["bands"],
     bodyFocus: "upper",
@@ -187,6 +191,7 @@ export const exercises: Exercise[] = [
     id: "dumbbell-15",
     name: "DB Full Body",
     durationMin: 15,
+    caloriesBurn: 130,
     intensity: "medium",
     equipment: ["dumbbells"],
     bodyFocus: "full body",
@@ -198,6 +203,7 @@ export const exercises: Exercise[] = [
     id: "core-8",
     name: "8-min Core Quickie",
     durationMin: 8,
+    caloriesBurn: 50,
     intensity: "medium",
     equipment: [],
     bodyFocus: "core",
@@ -209,6 +215,7 @@ export const exercises: Exercise[] = [
     id: "mobility-12",
     name: "12-min Mobility Flow",
     durationMin: 12,
+    caloriesBurn: 40,
     intensity: "low",
     equipment: [],
     bodyFocus: "mobility",

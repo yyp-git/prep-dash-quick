@@ -39,8 +39,10 @@ const Home: React.FC = () => {
     const totalProtein = mealItems.reduce((s, r) => s + r.protein, 0);
     const totalPrep = mealItems.reduce((s, r) => s + r.prepTimeMin, 0);
     const totalWorkoutMin = workoutItems.reduce((s, w) => s + w.durationMin, 0);
+    const totalBurn = workoutItems.reduce((s, w) => s + (w as any).caloriesBurn, 0);
+    const netKcal = totalKcal - totalBurn;
 
-    return { meals: mealItems.length, workouts: workoutItems.length, totalKcal, totalProtein, totalPrep, totalWorkoutMin };
+    return { meals: mealItems.length, workouts: workoutItems.length, totalKcal, totalProtein, totalPrep, totalWorkoutMin, totalBurn, netKcal };
   }, [plan]);
 
   const onStart = () => {
@@ -80,7 +82,7 @@ const Home: React.FC = () => {
             <CardContent className="text-sm flex items-center justify-between gap-3">
               <div className="space-y-1">
                 <p>{stats.meals} meals + {stats.workouts} workout today</p>
-                <p className="text-muted-foreground">≈ {stats.totalKcal} kcal • {stats.totalProtein}g protein • ~{stats.totalPrep} min prep • {stats.totalWorkoutMin} min workout</p>
+                <p className="text-muted-foreground">≈ {stats.totalKcal} kcal − {stats.totalBurn} = {stats.netKcal} net • {stats.totalProtein}g protein • ~{stats.totalPrep} min prep • {stats.totalWorkoutMin} min workout</p>
               </div>
               <Button size="sm" variant="secondary" onClick={() => navigate("/onboarding")}>
                 Adjust inputs

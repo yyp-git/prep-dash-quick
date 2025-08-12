@@ -15,7 +15,7 @@ const ExerciseDetail: React.FC = () => {
       <article className="space-y-3">
         <header>
           <h2 className="text-xl font-semibold">{e.name}</h2>
-          <p className="text-sm text-muted-foreground">{e.durationMin} min • {e.intensity} intensity • {e.space === 'tiny-room' ? 'tiny room friendly' : 'normal space'}</p>
+          <p className="text-sm text-muted-foreground">{e.durationMin} min • {e.intensity} intensity • {e.space === 'tiny-room' ? 'tiny room friendly' : 'normal space'} • ≈ {e.caloriesBurn} kcal burned</p>
         </header>
         <section>
           <h3 className="font-medium mb-1">Equipment</h3>
