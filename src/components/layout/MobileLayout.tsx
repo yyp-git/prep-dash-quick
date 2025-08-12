@@ -1,7 +1,7 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Home, UtensilsCrossed, Dumbbell, BarChart3, User } from "lucide-react";
+import { Home, UtensilsCrossed, Dumbbell, BarChart3, User, ChevronLeft } from "lucide-react";
 
 export const MobileLayout: React.FC<{
   title: string;
@@ -9,11 +9,27 @@ export const MobileLayout: React.FC<{
   hideTabBar?: boolean;
   rightAction?: React.ReactNode;
 }> = ({ title, children, hideTabBar, rightAction }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const rootTabs = new Set(["/home", "/recipes", "/exercises", "/progress", "/profile"]);
+  const isRootTab = rootTabs.has(location.pathname);
+  const showBack = hideTabBar || !isRootTab;
   return (
     <div className="min-h-screen max-w-md mx-auto flex flex-col bg-background">
       <header className="h-12 flex items-center justify-between px-4 border-b">
+        <div className="w-8">
+          {showBack && (
+            <button
+              aria-label="Go back"
+              onClick={() => navigate(-1)}
+              className="p-0.5 -ml-1 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+          )}
+        </div>
         <h1 className="text-base font-semibold">{title}</h1>
-        <div>{rightAction}</div>
+        <div className="min-w-8 flex justify-end">{rightAction}</div>
       </header>
       <main className="flex-1 p-3">{children}</main>
       {!hideTabBar && (
