@@ -38,6 +38,7 @@ export type AppState = {
   recordTap: (t: keyof Metrics["taps"]) => void;
   metrics: Metrics;
   weightHistory: { date: string; weightKg: number }[];
+  nutritionHistory: { date: string; kcal: number; protein: number; burn: number; net: number }[];
   addWeightEntry: (weightKg: number) => void;
   online: boolean;
 };
@@ -65,6 +66,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // simple seed for visual
   ]);
   const [online, setOnline] = useState<boolean>(navigator.onLine);
+  const [nutritionHistory, setNutritionHistory] = useState<{ date: string; kcal: number; protein: number; burn: number; net: number }[]>([]);
 
   useEffect(() => {
     const onOnline = () => setOnline(true);
@@ -130,7 +132,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const completePlanItem = (planItemId: string) => {
-    setPlan((prev) => prev.map((p) => (p.id === planItemId ? { ...p, completed: !p.completed } : p)));
+    setPlan((prev) => {
+      const newPlan = prev.map((p) => (p.id === planItemId ? { ...p, completed: !p.completed } : p));
+      // compute today's nutrition totals based on completed items
+      const today = new Date().toISOString().slice(0, 10);
+      const completedMeals = newPlan
+        .filter((p) => p.type === "meal" && p.completed)
+        .map((p) => allRecipes.find((r) => r.id === p.refId))
+        .filter(Boolean) as Recipe[];
+      const completedWorkouts = newPlan
+        .filter((p) => p.type === "workout" && p.completed)
+        .map((p) => allExercises.find((e) => e.id === p.refId))
+        .filter(Boolean) as Exercise[];
+      const kcal = completedMeals.reduce((s, r) => s + r.kcal, 0);
+      const protein = completedMeals.reduce((s, r) => s + r.protein, 0);
+      const burn = completedWorkouts.reduce((s, w) => s + (w as any).caloriesBurn, 0);
+      const net = kcal - burn;
+      setNutritionHistory((prevNH) => {
+        const others = prevNH.filter((e) => e.date !== today);
+        return [...others, { date: today, kcal, protein, burn, net }].sort((a, b) => a.date.localeCompare(b.date));
+      });
+      return newPlan;
+    });
     setMetrics((m) => ({ ...m, taps: { ...m.taps, complete: m.taps.complete + 1 } }));
     toast({ title: "Completed", description: "Updated status." });
   };
@@ -156,10 +179,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       recordTap,
       metrics,
       weightHistory,
+      nutritionHistory,
       addWeightEntry,
       online,
     }),
-    [isGuest, onboarding, plan, metrics, weightHistory, online]
+    [isGuest, onboarding, plan, metrics, weightHistory, nutritionHistory, online]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

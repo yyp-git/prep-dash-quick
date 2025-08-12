@@ -8,6 +8,7 @@ import { toast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { recipes, Recipe } from "@/data/mock";
+import { useNavigate } from "react-router-dom";
 
 // weight history is sourced from context
 
@@ -21,8 +22,21 @@ const ewma = (data: { day: string; w: number }[], alpha = 0.3) => {
 };
 
 const Progress: React.FC = () => {
-  const { metrics, weightHistory, addWeightEntry, plan } = useApp();
+  const { metrics, weightHistory, addWeightEntry, plan, isGuest, nutritionHistory } = useApp();
   const [weightInput, setWeightInput] = useState<string>("");
+  const navigate = useNavigate();
+
+  if (isGuest) {
+    return (
+      <MobileLayout title="Progress">
+        <Seo title="Progress – Sign in required" description="Sign up or log in to view your trends and history." canonical={window.location.href} />
+        <div className="rounded-md border p-4 text-sm">
+          Sign up or log in to access Progress features.
+          <div className="mt-2"><Button onClick={() => navigate("/auth")}>Sign up / Log in</Button></div>
+        </div>
+      </MobileLayout>
+    );
+  }
 
   const chartData = useMemo(() => {
     const src = (
@@ -37,8 +51,32 @@ const Progress: React.FC = () => {
     const data = src
       .sort((a, b) => a.date.localeCompare(b.date))
       .map((e, idx) => ({ day: `D${idx + 1}`, w: e.weightKg }));
-    return ewma(data);
+    const s = ewma(data);
+    return s.map((d) => ({ ...d, pop: 72 }));
   }, [weightHistory]);
+
+  const baseDays = useMemo(() => {
+    const days = Array.from({ length: 7 }).map((_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return d.toISOString().slice(0, 10);
+    });
+    return days;
+  }, [nutritionHistory]);
+
+  const calData = useMemo(() => {
+    return baseDays.map((date, idx) => {
+      const entry = nutritionHistory.find((e) => e.date === date);
+      return { day: `D${idx + 1}`, user: entry?.net ?? 0, pop: 2000 };
+    });
+  }, [baseDays, nutritionHistory]);
+
+  const proteinData = useMemo(() => {
+    return baseDays.map((date, idx) => {
+      const entry = nutritionHistory.find((e) => e.date === date);
+      return { day: `D${idx + 1}`, user: entry?.protein ?? 0, pop: 80 };
+    });
+  }, [baseDays, nutritionHistory]);
 
   const nutritionToday = useMemo(() => {
     const completedMeals = plan.filter((p) => p.type === "meal" && p.completed);
@@ -63,7 +101,7 @@ const Progress: React.FC = () => {
       <div className="space-y-3">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Weight trend (7d EWMA)</CardTitle>
+            <CardTitle className="text-base">Weight trend (7d EWMA vs. population)</CardTitle>
           </CardHeader>
           <CardContent onClick={() => toast({ title: "Trend detail", description: "Detail view coming soon." })}>
             <div className="h-36">
@@ -72,6 +110,7 @@ const Progress: React.FC = () => {
                   <XAxis dataKey="day" hide />
                   <YAxis hide />
                   <Line type="monotone" dataKey="ewma" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="pop" stroke="hsl(var(--muted-foreground))" strokeWidth={2} dot={false} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -94,6 +133,40 @@ const Progress: React.FC = () => {
               >
                 Log
               </Button>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Calories trend (completed vs. avg)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-36">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={calData}>
+                  <XAxis dataKey="day" hide />
+                  <YAxis hide />
+                  <Line type="monotone" dataKey="user" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="pop" stroke="hsl(var(--muted-foreground))" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Protein trend (completed vs. avg)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-36">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={proteinData}>
+                  <XAxis dataKey="day" hide />
+                  <YAxis hide />
+                  <Line type="monotone" dataKey="user" stroke="hsl(var(--primary))" strokeWidth={2} dot={false} />
+                  <Line type="monotone" dataKey="pop" stroke="hsl(var(--muted-foreground))" strokeWidth={2} dot={false} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>

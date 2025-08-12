@@ -46,10 +46,6 @@ const Home: React.FC = () => {
   }, [plan]);
 
   const onStart = () => {
-    if (isGuest) {
-      setUpsell(true);
-      return;
-    }
     recordTap("start");
     toast({ title: "Let's go!", description: "Timer started (mock)." });
   };
@@ -105,7 +101,6 @@ const Home: React.FC = () => {
               <CardContent className="flex gap-2">
                 <Button size="sm" onClick={() => {
                   if (isMeal) {
-                    if (isGuest) { setUpsell(true); return; }
                     recordTap("start");
                     navigate(`/recipes/${(ref as Recipe).id}`);
                   } else {
