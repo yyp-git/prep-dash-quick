@@ -173,6 +173,11 @@ const Home: React.FC = () => {
                             <Button size="sm" variant="secondary" onClick={() => setTimerSeconds(0)}>Reset</Button>
                           </div>
                         </div>
+                        <div className="flex justify-end mt-2">
+                          <Button size="sm" variant={p.completed ? "success" : "secondary"} onClick={() => completePlanItem(p.id)}>
+                            {p.completed ? "Completed" : "Complete"}
+                          </Button>
+                        </div>
                       </div>
                     </DialogContent>
                   </Dialog>
