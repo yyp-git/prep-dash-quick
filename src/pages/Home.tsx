@@ -25,6 +25,24 @@ const Home: React.FC = () => {
     return exercises.filter((e) => e.name.toLowerCase().includes(query.toLowerCase()));
   }, [activeItem, query]);
 
+  const stats = useMemo(() => {
+    const mealItems = plan
+      .filter((p) => p.type === "meal")
+      .map((p) => recipes.find((r) => r.id === p.refId))
+      .filter(Boolean) as Recipe[];
+    const workoutItems = plan
+      .filter((p) => p.type === "workout")
+      .map((p) => exercises.find((e) => e.id === p.refId))
+      .filter(Boolean) as Exercise[];
+
+    const totalKcal = mealItems.reduce((s, r) => s + r.kcal, 0);
+    const totalProtein = mealItems.reduce((s, r) => s + r.protein, 0);
+    const totalPrep = mealItems.reduce((s, r) => s + r.prepTimeMin, 0);
+    const totalWorkoutMin = workoutItems.reduce((s, w) => s + w.durationMin, 0);
+
+    return { meals: mealItems.length, workouts: workoutItems.length, totalKcal, totalProtein, totalPrep, totalWorkoutMin };
+  }, [plan]);
+
   const onStart = () => {
     if (isGuest) {
       setUpsell(true);
@@ -52,6 +70,23 @@ const Home: React.FC = () => {
             No plan yet. Go to Onboarding to generate one.
             <div className="mt-2"><Button onClick={() => navigate("/onboarding")}>Start Onboarding</Button></div>
           </div>
+        )}
+
+        {plan.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Overview</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm flex items-center justify-between gap-3">
+              <div className="space-y-1">
+                <p>{stats.meals} meals + {stats.workouts} workout today</p>
+                <p className="text-muted-foreground">≈ {stats.totalKcal} kcal • {stats.totalProtein}g protein • ~{stats.totalPrep} min prep • {stats.totalWorkoutMin} min workout</p>
+              </div>
+              <Button size="sm" variant="secondary" onClick={() => navigate("/onboarding")}>
+                Adjust inputs
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {plan.map((p) => {
