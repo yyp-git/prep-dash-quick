@@ -7,6 +7,7 @@ import heroImage from "@/assets/hero-minimal.png";
 
 const Splash: React.FC = () => {
   const navigate = useNavigate();
+  console.log("Splash component rendering");
   return (
     <MobileLayout title="Meal Prep & Fitness" hideTabBar>
       <Seo title="Meal Prep & Fitness – Fast, Simple" description="Low-effort meal prep and quick workouts in under 20 minutes." canonical={window.location.href} />
