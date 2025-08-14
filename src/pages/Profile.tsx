@@ -11,10 +11,11 @@ import { toast } from "@/hooks/use-toast";
 
 const Profile: React.FC = () => {
   const { isGuest, setGuest } = useApp();
+  const [name, setName] = useState('');
   const [consent, setConsent] = useState(false);
   const [units, setUnits] = useState<'metric' | 'imperial'>('metric');
 
-  const save = () => toast({ title: "Saved", description: "Preferences updated." });
+  const save = () => toast({ title: "Saved", description: "Profile and preferences updated." });
 
   return (
     <MobileLayout title="Profile">
@@ -22,7 +23,7 @@ const Profile: React.FC = () => {
       <div className="space-y-4">
         <section className="space-y-2">
           <Label>Name</Label>
-          <Input placeholder="Your name" />
+          <Input placeholder="Your name" value={name} onChange={(e) => setName(e.target.value)} />
         </section>
         <section className="space-y-2">
           <Label>Units</Label>
